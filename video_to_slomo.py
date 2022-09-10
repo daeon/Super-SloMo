@@ -15,7 +15,8 @@ from tqdm import tqdm
 # For parsing commandline arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--ffmpeg_dir", type=str, default="", help='path to ffmpeg.exe')
-parser.add_argument("--video", type=str, required=True, help='path of video to be converted')
+parser.add_argument("--video", type=str, required=False, help='path of video to be converted')
+parser.add_argument("--image_folder", type=str, required=False, help='path of image folder to be converted')
 parser.add_argument("--checkpoint", type=str, required=True, help='path of checkpoint for pretrained model')
 parser.add_argument("--fps", type=float, default=30, help='specify fps of output video. Default: 30.')
 parser.add_argument("--sf", type=int, required=True, help='specify the slomo factor N. This will increase the frames by Nx. Example sf=2 ==> 2x frames')
@@ -118,14 +119,17 @@ def main():
         # ctypes.windll only exists on Windows
         ctypes.windll.kernel32.SetFileAttributesW(extractionDir, FILE_ATTRIBUTE_HIDDEN)
 
-    extractionPath = os.path.join(extractionDir, "input")
     outputPath     = os.path.join(extractionDir, "output")
-    os.mkdir(extractionPath)
     os.mkdir(outputPath)
-    error = extract_frames(args.video, extractionPath)
-    if error:
-        print(error)
-        exit(1)
+    if args.video:
+      extractionPath = os.path.join(extractionDir, "input")
+      os.mkdir(extractionPath)
+      error = extract_frames(args.video, extractionPath)
+      if error:
+          print(error)
+          exit(1)
+    elif args.image_folder:
+      extractionPath = args.image_folder
 
     # Initialize transforms
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
